@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head('Sign In')"></head>
+<body class="auth-page">
+<div class="auth-container">
+    <div class="auth-card">
+        <!-- Logo -->
+        <div class="text-center mb-4">
+            <i class="fa-solid fa-vault fa-3x text-primary mb-2"></i>
+            <h1 class="h3 fw-bold">Sign in to AppVault</h1>
+        </div>
+
+        <!-- Alerts -->
+        <div class="alert alert-danger rounded-3" th:if="${error}" th:text="${error}"></div>
+        <div class="alert alert-success rounded-3" th:if="${registered}" th:text="${registered}"></div>
+        <div class="alert alert-info rounded-3" th:if="${logout}" th:text="${logout}"></div>
+
+        <form th:action="@{/auth/login}" method="post">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+            <div class="mb-3">
+                <div class="input-group-icon">
+                    <i class="fa-solid fa-envelope input-icon"></i>
+                    <input type="email" class="form-control form-control-auth" name="username"
+                           placeholder="Email address" required autofocus/>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="input-group-icon">
+                    <i class="fa-solid fa-lock input-icon"></i>
+                    <input type="password" class="form-control form-control-auth" id="loginPassword" name="password"
+                           placeholder="Password" required/>
+                    <button type="button" class="toggle-password" onclick="togglePassword('loginPassword', this)">
+                        <i class="fa-regular fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="rememberMe" name="remember-me"/>
+                    <label class="form-check-label small" for="rememberMe">Remember me</label>
+                </div>
+                <a href="#" class="text-primary small">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 btn-lg rounded-pill">Sign In</button>
+        </form>
+
+        <div class="divider my-4"><span>or</span></div>
+
+        <div class="text-center">
+            <span class="text-secondary">Don't have an account? </span>
+            <a th:href="@{/auth/register}" class="text-primary fw-semibold">Create Account</a>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

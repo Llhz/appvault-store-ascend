@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<footer th:fragment="footer" class="footer mt-5">
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <h5 class="fw-bold text-white mb-3">
+                    <i class="fa-solid fa-vault me-2"></i>AppVault
+                </h5>
+                <p class="text-secondary small">Your trusted marketplace for discovering amazing apps. Quality software, curated for you.</p>
+            </div>
+            <div class="col-md-2 mb-4">
+                <h6 class="text-white fw-semibold mb-3">Browse</h6>
+                <ul class="list-unstyled footer-links">
+                    <li><a th:href="@{/browse}">All Apps</a></li>
+                    <li><a th:href="@{/browse?sort=newest}">New Arrivals</a></li>
+                    <li><a th:href="@{/browse?sort=rating}">Top Rated</a></li>
+                </ul>
+            </div>
+            <div class="col-md-2 mb-4">
+                <h6 class="text-white fw-semibold mb-3">Account</h6>
+                <ul class="list-unstyled footer-links">
+                    <li><a th:href="@{/auth/register}">Sign Up</a></li>
+                    <li><a th:href="@{/auth/login}">Sign In</a></li>
+                    <li><a th:href="@{/user/profile}">Profile</a></li>
+                </ul>
+            </div>
+            <div class="col-md-2 mb-4">
+                <h6 class="text-white fw-semibold mb-3">Company</h6>
+                <ul class="list-unstyled footer-links">
+                    <li><a href="#">About</a></li>
+                    <li><a href="#">Privacy</a></li>
+                    <li><a href="#">Terms</a></li>
+                    <li><a href="#">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+        <hr class="border-secondary mt-2"/>
+        <p class="text-secondary text-center small mb-0">
+            &copy; 2024 AppVault. All rights reserved.
+        </p>
+    </div>
+</footer>
+</html>

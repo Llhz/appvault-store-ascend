@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNavbar">
+    <div class="container-fluid px-4">
+        <!-- Brand -->
+        <a class="navbar-brand fw-bold" th:href="@{/}">
+            <i class="fa-solid fa-vault me-2 text-primary"></i>AppVault
+        </a>
+
+        <!-- Mobile toggle -->
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <!-- Search bar (center) -->
+            <form class="mx-auto my-2 my-lg-0" th:action="@{/search}" method="get" style="width: 400px; max-width: 100%;" id="searchForm">
+                <div class="search-bar-container position-relative">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input class="form-control search-bar" type="search" name="q" placeholder="Search apps..."
+                           th:value="${query}" autocomplete="off" id="searchInput"/>
+                    <!-- Auto-suggest dropdown -->
+                    <div id="searchSuggest" class="search-suggest-dropdown"></div>
+                </div>
+            </form>
+
+            <!-- Right nav -->
+            <ul class="navbar-nav ms-auto align-items-center gap-1">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/browse}">Browse</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Categories</a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li th:each="cat : ${@categoryRepository.findAll()}">
+                            <a class="dropdown-item" th:href="@{/browse/category/{id}(id=${cat.id})}">
+                                <i class="fa-solid me-2" th:classappend="${cat.iconClass}"></i>
+                                <span th:text="${cat.name}">Category</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- Dark mode toggle -->
+                <li class="nav-item">
+                    <button id="darkModeToggle" class="btn btn-link nav-link" type="button" aria-label="Toggle dark mode">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                </li>
+
+                <!-- Notifications bell (authenticated only) -->
+                <li class="nav-item dropdown" sec:authorize="isAuthenticated()" id="notificationBell">
+                    <a class="nav-link position-relative" href="#" data-bs-toggle="dropdown" aria-expanded="false" id="notifDropdownToggle">
+                        <i class="fa-solid fa-bell"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" id="notifBadge" style="font-size: 0.6rem;">
+                            0
+                        </span>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end p-0" style="width: 320px; max-height: 400px; overflow-y: auto;" id="notifDropdown">
+                        <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                            <strong>Notifications</strong>
+                            <button class="btn btn-link btn-sm text-decoration-none p-0" id="markAllReadBtn" type="button">Mark all read</button>
+                        </div>
+                        <div id="notifList" class="list-group list-group-flush">
+                            <div class="text-center text-muted py-3" id="notifEmpty">No notifications</div>
+                        </div>
+                    </div>
+                </li>
+
+                <!-- Authenticated user menu -->
+                <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" data-bs-toggle="dropdown">
+                        <div class="avatar-circle-sm">
+                            <span sec:authentication="name" class="d-none"></span>
+                            <i class="fa-solid fa-circle-user fa-lg text-primary"></i>
+                        </div>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" th:href="@{/user/profile}"><i class="fa-solid fa-user me-2"></i>Profile</a></li>
+                        <li><a class="dropdown-item" th:href="@{/user/my-reviews}"><i class="fa-solid fa-star me-2"></i>My Reviews</a></li>
+                        <li sec:authorize="hasRole('ADMIN')"><hr class="dropdown-divider"/></li>
+                        <li sec:authorize="hasRole('ADMIN')">
+                            <a class="dropdown-item text-danger" th:href="@{/admin/dashboard}">
+                                <i class="fa-solid fa-shield-halved me-2"></i>Admin Dashboard
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"/></li>
+                        <li>
+                            <form th:action="@{/auth/logout}" method="post" class="m-0">
+                                <button type="submit" class="dropdown-item text-danger">
+                                    <i class="fa-solid fa-arrow-right-from-bracket me-2"></i>Sign Out
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </li>
+
+                <!-- Not authenticated -->
+                <li class="nav-item" sec:authorize="!isAuthenticated()">
+                    <a class="nav-link" th:href="@{/auth/login}">Sign In</a>
+                </li>
+                <li class="nav-item" sec:authorize="!isAuthenticated()">
+                    <a class="btn btn-primary btn-sm rounded-pill px-3" th:href="@{/auth/register}">Get Started</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+</html>

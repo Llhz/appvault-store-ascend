@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head('Error')"></head>
+<body class="auth-page">
+<div class="auth-container">
+    <div class="auth-card text-center">
+        <div class="mb-4">
+            <i class="fa-solid fa-triangle-exclamation fa-5x text-warning mb-3"></i>
+            <h2 class="fw-semibold mb-3">Something Went Wrong</h2>
+            <p class="text-secondary" th:if="${errorMessage}" th:text="${errorMessage}">An unexpected error occurred.</p>
+            <p class="text-secondary" th:unless="${errorMessage}">An unexpected error occurred. Please try again later.</p>
+        </div>
+        <a href="/" class="btn btn-primary rounded-pill px-5">Go to Home</a>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

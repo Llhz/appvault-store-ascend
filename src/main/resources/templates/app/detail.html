@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="fragments/header :: head(${app.name})"></head>
+<body>
+<div th:replace="fragments/navbar :: navbar"></div>
+
+<main style="padding-top: 70px;">
+<div class="container py-4">
+
+    <!-- Top Section -->
+    <div class="bg-white rounded-3 shadow-sm p-4 mb-4">
+        <div class="row align-items-start">
+            <div class="col-auto">
+                <img th:src="${app.iconUrl != null ? app.iconUrl : 'https://placehold.co/128x128/007AFF/white?text=A'}"
+                     th:alt="${app.name}" class="app-icon-xl"/>
+            </div>
+            <div class="col">
+                <h1 class="h2 fw-bold mb-1" th:text="${app.name}">App Name</h1>
+                <div class="text-primary mb-1" th:text="${app.developer}">Developer</div>
+                <span th:if="${app.category != null}" class="badge bg-secondary rounded-pill mb-2" th:text="${app.category.name}">Category</span>
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div class="star-rating">
+                        <span th:each="i : ${#numbers.sequence(1,5)}">
+                            <i class="fa-solid fa-star" th:if="${i <= app.rating}"></i>
+                            <i class="fa-regular fa-star" th:unless="${i <= app.rating}"></i>
+                        </span>
+                    </div>
+                    <span class="fw-semibold" th:text="${app.rating}">0.0</span>
+                    <span class="text-secondary small" th:text="'(' + ${app.reviewCount} + ' ratings)'"></span>
+                </div>
+                <span th:if="${app.price != null and app.price.compareTo(T(java.math.BigDecimal).ZERO) == 0}"
+                      class="btn-get btn-get-lg">GET</span>
+                <span th:unless="${app.price != null and app.price.compareTo(T(java.math.BigDecimal).ZERO) == 0}"
+                      class="btn-price btn-price-lg" th:text="'$' + ${#numbers.formatDecimal(app.price, 1, 2)}">$4.99</span>
+            </div>
+        </div>
+
+        <!-- Info Bar -->
+        <div class="info-bar mt-4">
+            <div class="info-stat" th:if="${app.reviewCount > 0}">
+                <div class="info-stat-value" th:text="${app.rating}">4.5</div>
+                <div class="info-stat-label">out of 5</div>
+            </div>
+            <div class="info-stat-divider" th:if="${app.reviewCount > 0}"></div>
+            <div class="info-stat" th:if="${app.ageRating != null}">
+                <div class="info-stat-value" th:text="${app.ageRating}">4+</div>
+                <div class="info-stat-label">Age Rating</div>
+            </div>
+            <div class="info-stat-divider" th:if="${app.ageRating != null}"></div>
+            <div class="info-stat" th:if="${app.category != null}">
+                <i class="fa-solid info-stat-value small" th:classappend="${app.category.iconClass}"></i>
+                <div class="info-stat-label" th:text="${app.category.name}">Category</div>
+            </div>
+            <div class="info-stat-divider" th:if="${app.category != null}"></div>
+            <div class="info-stat" th:if="${app.size != null}">
+                <div class="info-stat-value" th:text="${app.size}">0 MB</div>
+                <div class="info-stat-label">Size</div>
+            </div>
+            <div class="info-stat-divider" th:if="${app.size != null}"></div>
+            <div class="info-stat" th:if="${app.version != null}">
+                <div class="info-stat-value" th:text="${app.version}">1.0</div>
+                <div class="info-stat-label">Version</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screenshots -->
+    <div class="bg-white rounded-3 shadow-sm p-4 mb-4" th:if="${!app.screenshots.isEmpty()}">
+        <h2 class="section-title mb-3">Screenshots</h2>
+        <div class="screenshot-scroll">
+            <div th:each="ss,iterStat : ${app.screenshots}" class="screenshot-item flex-shrink-0">
+                <img th:src="${ss.imageUrl}" th:alt="${ss.caption != null ? ss.caption : 'Screenshot'}"
+                     th:data-index="${iterStat.index}"
+                     class="screenshot-img rounded-3" style="cursor: pointer;"/>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screenshot Lightbox -->
+    <div id="screenshotLightbox" class="lightbox-overlay">
+        <button class="lightbox-close" aria-label="Close">&times;</button>
+        <button class="lightbox-nav lightbox-prev" aria-label="Previous">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <button class="lightbox-nav lightbox-next" aria-label="Next">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <div class="lightbox-content">
+            <img class="lightbox-image" src="" alt=""/>
+            <div class="lightbox-caption"></div>
+        </div>
+    </div>
+
+    <!-- Description -->
+    <div class="bg-white rounded-3 shadow-sm p-4 mb-4">
+        <h2 class="section-title mb-3">Description</h2>
+        <div class="description-text" id="descText">
+            <p th:text="${app.description}" style="white-space: pre-line;"></p>
+        </div>
+    </div>
+
+    <!-- What's New -->
+    <div class="bg-white rounded-3 shadow-sm p-4 mb-4" th:if="${app.version != null}">
+        <h2 class="section-title mb-1">What's New</h2>
+        <div class="text-secondary small mb-2">Version <span th:text="${app.version}"></span></div>
+        <p class="text-muted">Bug fixes and performance improvements.</p>
+    </div>
+
+    <!-- Ratings & Reviews -->
+    <div class="bg-white rounded-3 shadow-sm p-4 mb-4" id="reviews">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="section-title mb-0">Ratings &amp; Reviews</h2>
+        </div>
+
+        <div class="row mb-4" th:if="${!reviews.isEmpty()}">
+            <div class="col-md-3 text-center">
+                <div class="big-rating" th:text="${app.rating}">4.5</div>
+                <div class="star-rating mb-1">
+                    <span th:each="i : ${#numbers.sequence(1,5)}">
+                        <i class="fa-solid fa-star" th:if="${i <= app.rating}"></i>
+                        <i class="fa-regular fa-star" th:unless="${i <= app.rating}"></i>
+                    </span>
+                </div>
+                <div class="text-secondary small" th:text="${app.reviewCount} + ' Ratings'">0 Ratings</div>
+            </div>
+            <div class="col-md-9 d-flex flex-column justify-content-center">
+                <div th:each="star : ${#numbers.sequence(5, 1, -1)}" class="d-flex align-items-center gap-2 mb-1">
+                    <span class="text-secondary small" style="width: 20px;" th:text="${star}">5</span>
+                    <div class="rating-bar flex-grow-1">
+                        <div class="rating-bar-fill"
+                             th:with="pct=${ratingCounts.get(T(Integer).valueOf(star))}"
+                             th:style="'width: ' + (${pct != null ? pct : 0}) + '%'"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Write a review button -->
+        <div class="mb-4" sec:authorize="isAuthenticated()" th:if="${!alreadyReviewed}">
+            <button class="btn btn-outline-primary rounded-pill" onclick="document.getElementById('reviewForm').classList.toggle('d-none')">
+                <i class="fa-solid fa-pen me-2"></i>Write a Review
+            </button>
+
+            <!-- Review form -->
+            <div id="reviewForm" class="d-none mt-3 p-4 bg-light rounded-3">
+                <h5 class="fw-semibold mb-3">Write Your Review</h5>
+                <form th:action="@{/review/app/{id}(id=${app.id})}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Rating</label>
+                        <div class="star-selector mb-2" id="starSelector">
+                            <i class="fa-regular fa-star star-select" data-val="1"></i>
+                            <i class="fa-regular fa-star star-select" data-val="2"></i>
+                            <i class="fa-regular fa-star star-select" data-val="3"></i>
+                            <i class="fa-regular fa-star star-select" data-val="4"></i>
+                            <i class="fa-regular fa-star star-select" data-val="5"></i>
+                        </div>
+                        <input type="hidden" id="ratingInput" name="rating" value="5"/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Title</label>
+                        <input type="text" class="form-control rounded-3" name="title" placeholder="Summarize your experience" required maxlength="100"/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Review</label>
+                        <textarea class="form-control rounded-3" name="content" rows="4" placeholder="Tell others what you think about this app..." required maxlength="2000"></textarea>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary rounded-pill px-4">Submit Review</button>
+                        <button type="button" class="btn btn-outline-secondary rounded-pill" onclick="document.getElementById('reviewForm').classList.add('d-none')">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Reviews list -->
+        <div th:each="review : ${reviews}" class="review-card mb-3">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <div>
+                    <div class="star-rating-sm mb-1">
+                        <span th:each="i : ${#numbers.sequence(1,5)}">
+                            <i class="fa-solid fa-star" th:if="${i <= review.rating}"></i>
+                            <i class="fa-regular fa-star" th:unless="${i <= review.rating}"></i>
+                        </span>
+                    </div>
+                    <div class="fw-semibold" th:text="${review.title}">Title</div>
+                </div>
+                <div class="text-secondary small" th:text="${#temporals.format(review.createdAt, 'MMM d, yyyy')}">Date</div>
+            </div>
+            <div class="text-secondary small mb-2" th:text="${review.user.firstName} + ' ' + ${review.user.lastName}">Reviewer</div>
+            <p class="mb-2" th:text="${review.content}">Content</p>
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-sm btn-outline-secondary rounded-pill helpful-btn"
+                        th:data-review-id="${review.id}">
+                    <i class="fa-regular fa-thumbs-up me-1"></i>
+                    Helpful (<span class="helpful-count" th:text="${review.helpful}">0</span>)
+                </button>
+                <form th:action="@{/review/{id}/delete(id=${review.id})}" method="post" class="m-0"
+                      sec:authorize="isAuthenticated()"
+                      th:if="${#authentication.name == review.user.email}">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <input type="hidden" name="returnUrl" th:value="@{/app/{id}(id=${app.id})}"/>
+                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill"
+                            onclick="return confirm('Delete this review?')">
+                        <i class="fa-solid fa-trash me-1"></i>Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div th:if="${reviews.isEmpty()}" class="text-center py-4 text-secondary">
+            <i class="fa-regular fa-comment-dots fa-2x mb-2"></i>
+            <p>No reviews yet. Be the first!</p>
+        </div>
+    </div>
+
+    <!-- Related Apps -->
+    <div th:if="${!relatedApps.isEmpty()}" class="bg-white rounded-3 shadow-sm p-4 mb-4">
+        <h2 class="section-title mb-3">You May Also Like</h2>
+        <div class="d-flex gap-3 overflow-x-auto pb-2">
+            <div th:each="relApp : ${relatedApps}" class="app-card-scroll flex-shrink-0">
+                <a th:href="@{/app/{id}(id=${relApp.id})}" class="text-decoration-none">
+                    <div class="text-center">
+                        <img th:src="${relApp.iconUrl != null ? relApp.iconUrl : 'https://placehold.co/80x80/007AFF/white?text=A'}"
+                             th:alt="${relApp.name}" class="app-icon mb-2"/>
+                        <div class="app-name-sm fw-semibold text-dark text-truncate" th:text="${relApp.name}">App</div>
+                        <span th:if="${relApp.price != null and relApp.price.compareTo(T(java.math.BigDecimal).ZERO) == 0}"
+                              class="btn-get">GET</span>
+                        <span th:unless="${relApp.price != null and relApp.price.compareTo(T(java.math.BigDecimal).ZERO) == 0}"
+                              class="btn-price" th:text="'$' + ${#numbers.formatDecimal(relApp.price, 1, 2)}">$4.99</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+</main>
+
+<div th:replace="fragments/footer :: footer"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>
