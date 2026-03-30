@@ -16,9 +16,7 @@ public class HomeController {
 
     @GetMapping("/")
     public String home(Model model) {
-        java.util.List<com.appvault.model.AppListing> featured = appListingService.findFeatured();
-        model.addAttribute("featuredApps", featured);
-        model.addAttribute("appOfTheDayList", featured.subList(0, Math.min(featured.size(), 5)));
+        model.addAttribute("featuredApps", appListingService.findFeatured());
         model.addAttribute("topFreeApps", appListingService.findTopFree(8));
         model.addAttribute("topPaidApps", appListingService.findTopPaid(8));
         model.addAttribute("recentApps", appListingService.findRecent(8));

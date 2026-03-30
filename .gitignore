@@ -7,29 +7,3 @@ target/
 .idea/
 *.iml
 .DS_Store
-.playwright-mcp
-
-# Cypress
-e2e-cypress/node_modules/
-e2e-cypress/cypress/videos/
-e2e-cypress/cypress/screenshots/
-e2e-cypress/cypress/downloads/
-
-# Playwright
-e2e-playwright/node_modules/
-e2e-playwright/test-results/
-e2e-playwright/playwright-report/
-
-# k6
-perf-k6/node_modules/
-
-# Robot Framework
-e2e-robot/.venv/
-e2e-robot/results/
-e2e-robot/__pycache__/
-
-# Test runner logs
-test-logs/
-
-# Build logs
-build-logs/
