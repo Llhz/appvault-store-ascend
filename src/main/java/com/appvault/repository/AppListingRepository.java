@@ -29,6 +29,4 @@ public interface AppListingRepository extends JpaRepository<AppListing, Long> {
     List<AppListing> findTop8ByOrderByCreatedAtDesc();
 
     List<AppListing> findTop4ByCategoryAndIdNot(Category category, Long id);
-
-    List<AppListing> findTop10ByOrderByDownloadCountDesc();
 }
