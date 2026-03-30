@@ -69,10 +69,26 @@
     <div class="bg-white rounded-3 shadow-sm p-4 mb-4" th:if="${!app.screenshots.isEmpty()}">
         <h2 class="section-title mb-3">Screenshots</h2>
         <div class="screenshot-scroll">
-            <div th:each="ss : ${app.screenshots}" class="screenshot-item flex-shrink-0">
+            <div th:each="ss,iterStat : ${app.screenshots}" class="screenshot-item flex-shrink-0">
                 <img th:src="${ss.imageUrl}" th:alt="${ss.caption != null ? ss.caption : 'Screenshot'}"
-                     class="screenshot-img rounded-3"/>
+                     th:data-index="${iterStat.index}"
+                     class="screenshot-img rounded-3" style="cursor: pointer;"/>
             </div>
+        </div>
+    </div>
+
+    <!-- Screenshot Lightbox -->
+    <div id="screenshotLightbox" class="lightbox-overlay">
+        <button class="lightbox-close" aria-label="Close">&times;</button>
+        <button class="lightbox-nav lightbox-prev" aria-label="Previous">
+            <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <button class="lightbox-nav lightbox-next" aria-label="Next">
+            <i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <div class="lightbox-content">
+            <img class="lightbox-image" src="" alt=""/>
+            <div class="lightbox-caption"></div>
         </div>
     </div>
 
@@ -113,7 +129,8 @@
                     <span class="text-secondary small" style="width: 20px;" th:text="${star}">5</span>
                     <div class="rating-bar flex-grow-1">
                         <div class="rating-bar-fill"
-                             th:style="'width: ' + (${ratingCounts[star] != null ? ratingCounts[star] : 0}) + '%'"></div>
+                             th:with="pct=${ratingCounts.get(T(Integer).valueOf(star))}"
+                             th:style="'width: ' + (${pct != null ? pct : 0}) + '%'"></div>
                     </div>
                 </div>
             </div>

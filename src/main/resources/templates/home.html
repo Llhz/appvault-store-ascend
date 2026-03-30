@@ -10,7 +10,40 @@
     <section class="hero-section">
         <div class="container py-5">
             <div class="row align-items-center">
-                <div class="col-lg-6">
+                <div class="col-lg-6" th:if="${!appOfTheDayList.isEmpty()}">
+                    <div class="aotd-carousel" id="aotdCarousel">
+                        <th:block th:each="app, iter : ${appOfTheDayList}">
+                            <a th:href="@{/app/{id}(id=${app.id})}" class="text-decoration-none aotd-slide"
+                               th:classappend="${iter.index == 0 ? ' active' : ''}">
+                                <div class="app-of-the-day"
+                                     th:style="'background-image: url(' + ${app.headerImageUrl != null ? app.headerImageUrl : 'https://placehold.co/600x300/007AFF/white?text=App'} + ')'">
+                                    <div class="aotd-overlay"></div>
+                                    <div class="aotd-label">
+                                        <span>APP OF THE DAY</span>
+                                        <span class="ms-2" th:text="${#dates.format(new java.util.Date(), 'MMMM d, yyyy')}">March 30, 2026</span>
+                                    </div>
+                                    <div class="aotd-content">
+                                        <img th:src="${app.iconUrl != null ? app.iconUrl : 'https://placehold.co/48x48/007AFF/white?text=A'}"
+                                             th:alt="${app.name}" class="aotd-icon"/>
+                                        <div class="aotd-info">
+                                            <div class="aotd-name" th:text="${app.name}">App Name</div>
+                                            <div class="aotd-subtitle" th:text="${app.subtitle}">App subtitle</div>
+                                            <div class="aotd-developer" th:text="${app.developer}">Developer</div>
+                                        </div>
+                                        <span class="aotd-get-btn">GET</span>
+                                    </div>
+                                </div>
+                            </a>
+                        </th:block>
+                        <div class="aotd-dots" th:if="${appOfTheDayList.size() > 1}">
+                            <span th:each="app, iter : ${appOfTheDayList}"
+                                  class="aotd-dot"
+                                  th:classappend="${iter.index == 0 ? ' active' : ''}"
+                                  th:data-index="${iter.index}"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6" th:if="${appOfTheDayList.isEmpty()}">
                     <h1 class="hero-title">Discover<br/>Amazing Apps</h1>
                     <p class="hero-subtitle">Explore the best apps curated just for you. Free and premium apps for every need.</p>
                     <a th:href="@{/browse}" class="btn btn-primary btn-lg rounded-pill px-5 me-3">Browse Apps</a>

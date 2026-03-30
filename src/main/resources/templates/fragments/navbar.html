@@ -40,6 +40,13 @@
                     </ul>
                 </li>
 
+                <!-- Dark mode toggle -->
+                <li class="nav-item">
+                    <button id="darkModeToggle" class="btn btn-link nav-link" type="button" aria-label="Toggle dark mode">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+                </li>
+
                 <!-- Authenticated user menu -->
                 <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
                     <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" data-bs-toggle="dropdown">
