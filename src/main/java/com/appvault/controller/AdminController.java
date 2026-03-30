@@ -16,6 +16,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin")
@@ -108,5 +110,53 @@ public class AdminController {
     public String listUsers(Model model) {
         model.addAttribute("users", userService.findAll());
         return "admin/manage-users";
+    }
+
+    // --- JSON API endpoints for dashboard charts ---
+
+    @GetMapping("/api/stats/downloads")
+    @ResponseBody
+    public List<Map<String, Object>> getDownloadStats() {
+        return appListingRepository.findTop10ByOrderByDownloadCountDesc().stream()
+                .map(app -> {
+                    Map<String, Object> entry = new LinkedHashMap<>();
+                    entry.put("name", app.getName());
+                    entry.put("downloadCount", app.getDownloadCount());
+                    return entry;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @GetMapping("/api/stats/ratings")
+    @ResponseBody
+    public List<Map<String, Object>> getRatingStats() {
+        Map<Integer, Long> ratingMap = new LinkedHashMap<>();
+        for (int i = 1; i <= 5; i++) {
+            ratingMap.put(i, 0L);
+        }
+        for (Object[] row : reviewRepository.countByRatingGrouped()) {
+            ratingMap.put((Integer) row[0], (Long) row[1]);
+        }
+        return ratingMap.entrySet().stream()
+                .map(e -> {
+                    Map<String, Object> entry = new LinkedHashMap<>();
+                    entry.put("rating", e.getKey());
+                    entry.put("count", e.getValue());
+                    return entry;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @GetMapping("/api/stats/categories")
+    @ResponseBody
+    public List<Map<String, Object>> getCategoryStats() {
+        return categoryRepository.countAppsByCategory().stream()
+                .map(row -> {
+                    Map<String, Object> entry = new LinkedHashMap<>();
+                    entry.put("category", row[0]);
+                    entry.put("count", row[1]);
+                    return entry;
+                })
+                .collect(Collectors.toList());
     }
 }

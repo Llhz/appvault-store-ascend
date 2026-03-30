@@ -12,7 +12,9 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @Transactional
@@ -23,6 +25,9 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Autowired
     private AppListingRepository appListingRepository;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @Override
     public Review save(ReviewDto dto, User user, Long appId) {
@@ -38,6 +43,7 @@ public class ReviewServiceImpl implements ReviewService {
 
         Review saved = reviewRepository.save(review);
         recalculateRating(app);
+        notifyOtherReviewers(app, user);
         return saved;
     }
 
@@ -77,12 +83,32 @@ public class ReviewServiceImpl implements ReviewService {
                 .orElseThrow(() -> new ResourceNotFoundException("Review not found: " + reviewId));
         review.setHelpful(review.getHelpful() + 1);
         reviewRepository.save(review);
+
+        Long authorId = review.getUser().getId();
+        String appName = review.getAppListing().getName();
+        Long appId = review.getAppListing().getId();
+        notificationService.createNotification(authorId,
+                "Your review on " + appName + " was marked helpful",
+                "/app/" + appId);
     }
 
     @Override
     @Transactional(readOnly = true)
     public boolean hasUserReviewedApp(Long userId, Long appId) {
         return reviewRepository.existsByUserIdAndAppListingId(userId, appId);
+    }
+
+    private void notifyOtherReviewers(AppListing app, User currentUser) {
+        List<Review> existingReviews = reviewRepository.findByAppListingIdOrderByCreatedAtDesc(app.getId());
+        Set<Long> notified = new HashSet<>();
+        for (Review r : existingReviews) {
+            Long uid = r.getUser().getId();
+            if (!uid.equals(currentUser.getId()) && notified.add(uid)) {
+                notificationService.createNotification(uid,
+                        "Someone also reviewed " + app.getName(),
+                        "/app/" + app.getId());
+            }
+        }
     }
 
     private void recalculateRating(AppListing app) {

@@ -240,6 +240,331 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /* App of the Day — auto-cycling carousel */
     var aotdCarousel = document.getElementById('aotdCarousel');
+
+    /* ===== Live Search Auto-suggest ===== */
+    var searchInput = document.getElementById('searchInput');
+    var searchSuggest = document.getElementById('searchSuggest');
+    var searchForm = document.getElementById('searchForm');
+    if (searchInput && searchSuggest) {
+        var debounceTimer = null;
+        var RECENT_KEY = 'appvault_recent_searches';
+        var MAX_RECENT = 5;
+        var activeIndex = -1;
+
+        function getRecentSearches() {
+            try {
+                return JSON.parse(localStorage.getItem(RECENT_KEY)) || [];
+            } catch (e) { return []; }
+        }
+
+        function saveRecentSearch(query) {
+            var q = query.trim();
+            if (!q) return;
+            var recent = getRecentSearches().filter(function (r) { return r !== q; });
+            recent.unshift(q);
+            if (recent.length > MAX_RECENT) recent = recent.slice(0, MAX_RECENT);
+            localStorage.setItem(RECENT_KEY, JSON.stringify(recent));
+        }
+
+        function clearRecentSearches() {
+            localStorage.removeItem(RECENT_KEY);
+            closeSuggest();
+        }
+
+        function closeSuggest() {
+            searchSuggest.classList.remove('active');
+            searchSuggest.innerHTML = '';
+            activeIndex = -1;
+        }
+
+        function renderSuggestions(items) {
+            activeIndex = -1;
+            var html = '<div class="search-suggest-header">Suggestions</div>';
+            items.forEach(function (item) {
+                var iconHtml = item.iconUrl
+                    ? '<img src="' + escapeHtml(item.iconUrl) + '" alt=""/>'
+                    : '<div class="suggest-icon-placeholder"><i class="fa-solid fa-cube"></i></div>';
+                var catHtml = item.categoryName
+                    ? '<span class="suggest-category">' + escapeHtml(item.categoryName) + '</span>'
+                    : '';
+                html += '<div class="search-suggest-item" data-id="' + item.id + '">'
+                    + iconHtml
+                    + '<span class="suggest-name">' + escapeHtml(item.name) + '</span>'
+                    + catHtml
+                    + '</div>';
+            });
+            searchSuggest.innerHTML = html;
+            searchSuggest.classList.add('active');
+            bindSuggestClicks();
+        }
+
+        function renderRecent(recent) {
+            activeIndex = -1;
+            var html = '<div class="search-suggest-header">Recent Searches</div>';
+            recent.forEach(function (q) {
+                html += '<div class="search-suggest-item recent-item" data-query="' + escapeHtml(q) + '">'
+                    + '<div class="suggest-icon-placeholder"><i class="fa-solid fa-clock-rotate-left"></i></div>'
+                    + '<span class="suggest-name">' + escapeHtml(q) + '</span>'
+                    + '</div>';
+            });
+            html += '<button class="search-suggest-clear" type="button">Clear Recent Searches</button>';
+            searchSuggest.innerHTML = html;
+            searchSuggest.classList.add('active');
+            bindSuggestClicks();
+            var clearBtn = searchSuggest.querySelector('.search-suggest-clear');
+            if (clearBtn) clearBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                clearRecentSearches();
+            });
+        }
+
+        function escapeHtml(str) {
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(str || ''));
+            return div.innerHTML;
+        }
+
+        function bindSuggestClicks() {
+            searchSuggest.querySelectorAll('.search-suggest-item').forEach(function (el) {
+                el.addEventListener('mousedown', function (e) {
+                    e.preventDefault();
+                    if (this.dataset.id) {
+                        window.location = '/app/' + this.dataset.id;
+                    } else if (this.dataset.query) {
+                        searchInput.value = this.dataset.query;
+                        searchForm.submit();
+                    }
+                });
+            });
+        }
+
+        function fetchSuggestions(query) {
+            var csrfToken = document.querySelector('meta[name="_csrf"]');
+            var csrfHeader = document.querySelector('meta[name="_csrf_header"]');
+            var headers = {};
+            if (csrfToken && csrfHeader) {
+                headers[csrfHeader.getAttribute('content')] = csrfToken.getAttribute('content');
+            }
+            fetch('/search/suggest?q=' + encodeURIComponent(query), {
+                method: 'GET',
+                headers: headers,
+                credentials: 'same-origin'
+            })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+                if (data && data.length > 0) {
+                    renderSuggestions(data);
+                } else {
+                    closeSuggest();
+                }
+            })
+            .catch(function () { closeSuggest(); });
+        }
+
+        searchInput.addEventListener('input', function () {
+            clearTimeout(debounceTimer);
+            var q = this.value.trim();
+            if (q.length >= 2) {
+                debounceTimer = setTimeout(function () { fetchSuggestions(q); }, 300);
+            } else {
+                closeSuggest();
+            }
+        });
+
+        searchInput.addEventListener('focus', function () {
+            var q = this.value.trim();
+            if (q.length >= 2) {
+                fetchSuggestions(q);
+            } else {
+                var recent = getRecentSearches();
+                if (recent.length > 0) renderRecent(recent);
+            }
+        });
+
+        searchInput.addEventListener('keydown', function (e) {
+            if (!searchSuggest.classList.contains('active')) return;
+            var items = searchSuggest.querySelectorAll('.search-suggest-item');
+            if (e.key === 'Escape') {
+                closeSuggest();
+                searchInput.blur();
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                activeIndex = Math.min(activeIndex + 1, items.length - 1);
+                highlightItem(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                activeIndex = Math.max(activeIndex - 1, -1);
+                highlightItem(items);
+            } else if (e.key === 'Enter' && activeIndex >= 0 && items[activeIndex]) {
+                e.preventDefault();
+                var el = items[activeIndex];
+                if (el.dataset.id) {
+                    window.location = '/app/' + el.dataset.id;
+                } else if (el.dataset.query) {
+                    searchInput.value = el.dataset.query;
+                    searchForm.submit();
+                }
+            }
+        });
+
+        function highlightItem(items) {
+            items.forEach(function (el, i) {
+                el.classList.toggle('active', i === activeIndex);
+            });
+        }
+
+        // Submit → save recent search
+        if (searchForm) {
+            searchForm.addEventListener('submit', function () {
+                var q = searchInput.value.trim();
+                if (q) saveRecentSearch(q);
+            });
+        }
+
+        // Click outside → close
+        document.addEventListener('click', function (e) {
+            if (!searchSuggest.contains(e.target) && e.target !== searchInput) {
+                closeSuggest();
+            }
+        });
+    }
+    /* ===== End Live Search Auto-suggest ===== */
+
+    /* ===== Notifications ===== */
+    var notifBell = document.getElementById('notificationBell');
+    if (notifBell) {
+        var notifBadge = document.getElementById('notifBadge');
+        var notifList = document.getElementById('notifList');
+        var notifEmpty = document.getElementById('notifEmpty');
+        var markAllReadBtn = document.getElementById('markAllReadBtn');
+        var notifDropdownToggle = document.getElementById('notifDropdownToggle');
+
+        function getCsrfHeaders() {
+            var csrfToken = document.querySelector('meta[name="_csrf"]');
+            var csrfHeader = document.querySelector('meta[name="_csrf_header"]');
+            var headers = {};
+            if (csrfToken && csrfHeader) {
+                headers[csrfHeader.getAttribute('content')] = csrfToken.getAttribute('content');
+            }
+            return headers;
+        }
+
+        function fetchNotifCount() {
+            fetch('/user/notifications/count', { credentials: 'same-origin' })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    if (data.count && data.count > 0) {
+                        notifBadge.textContent = data.count > 99 ? '99+' : data.count;
+                        notifBadge.classList.remove('d-none');
+                    } else {
+                        notifBadge.classList.add('d-none');
+                    }
+                })
+                .catch(function () {});
+        }
+
+        function renderNotifications(notifications) {
+            if (!notifications || notifications.length === 0) {
+                notifList.innerHTML = '<div class="text-center text-muted py-3">No notifications</div>';
+                return;
+            }
+            var html = '';
+            notifications.forEach(function (n) {
+                var readClass = n.read ? 'bg-white' : 'bg-light';
+                var dot = n.read ? '' : '<span class="text-primary me-1">&bull;</span>';
+                html += '<a href="#" class="list-group-item list-group-item-action px-3 py-2 notif-item ' + readClass + '"'
+                    + ' data-notif-id="' + n.id + '" data-link="' + escapeAttr(n.link || '/') + '">'
+                    + '<div class="d-flex align-items-start">'
+                    + dot
+                    + '<small class="text-wrap">' + escapeHtmlNotif(n.message) + '</small>'
+                    + '</div>'
+                    + '<small class="text-muted">' + formatTimeAgo(n.createdAt) + '</small>'
+                    + '</a>';
+            });
+            notifList.innerHTML = html;
+            bindNotifClicks();
+        }
+
+        function escapeHtmlNotif(str) {
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(str || ''));
+            return div.innerHTML;
+        }
+
+        function escapeAttr(str) {
+            return (str || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        function formatTimeAgo(dateStr) {
+            if (!dateStr) return '';
+            var date = new Date(dateStr);
+            var now = new Date();
+            var diff = Math.floor((now - date) / 1000);
+            if (diff < 60) return 'just now';
+            if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+            if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+            return Math.floor(diff / 86400) + 'd ago';
+        }
+
+        function bindNotifClicks() {
+            notifList.querySelectorAll('.notif-item').forEach(function (el) {
+                el.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    var notifId = this.dataset.notifId;
+                    var link = this.dataset.link || '/';
+                    var headers = getCsrfHeaders();
+                    headers['Content-Type'] = 'application/json';
+                    fetch('/user/notifications/' + notifId + '/read', {
+                        method: 'POST',
+                        headers: headers,
+                        credentials: 'same-origin'
+                    }).then(function () {
+                        window.location.href = link;
+                    }).catch(function () {
+                        window.location.href = link;
+                    });
+                });
+            });
+        }
+
+        // Load notifications when dropdown opens
+        notifDropdownToggle.addEventListener('click', function () {
+            fetch('/user/notifications', { credentials: 'same-origin' })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    renderNotifications(data);
+                })
+                .catch(function () {});
+        });
+
+        // Mark all read
+        markAllReadBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var headers = getCsrfHeaders();
+            headers['Content-Type'] = 'application/json';
+            fetch('/user/notifications/read-all', {
+                method: 'POST',
+                headers: headers,
+                credentials: 'same-origin'
+            }).then(function () {
+                notifBadge.classList.add('d-none');
+                notifList.querySelectorAll('.notif-item').forEach(function (el) {
+                    el.classList.remove('bg-light');
+                    el.classList.add('bg-white');
+                    var dot = el.querySelector('.text-primary');
+                    if (dot) dot.remove();
+                });
+            }).catch(function () {});
+        });
+
+        // Initial count fetch + poll every 60s
+        fetchNotifCount();
+        setInterval(fetchNotifCount, 60000);
+    }
+    /* ===== End Notifications ===== */
+
     if (aotdCarousel) {
         var slides = aotdCarousel.querySelectorAll('.aotd-slide');
         var dots = aotdCarousel.querySelectorAll('.aotd-dot');

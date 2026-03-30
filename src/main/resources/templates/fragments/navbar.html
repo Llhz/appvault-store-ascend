@@ -15,11 +15,13 @@
 
         <div class="collapse navbar-collapse" id="navbarContent">
             <!-- Search bar (center) -->
-            <form class="mx-auto my-2 my-lg-0" th:action="@{/search}" method="get" style="width: 400px; max-width: 100%;">
+            <form class="mx-auto my-2 my-lg-0" th:action="@{/search}" method="get" style="width: 400px; max-width: 100%;" id="searchForm">
                 <div class="search-bar-container position-relative">
                     <i class="fa-solid fa-magnifying-glass search-icon"></i>
                     <input class="form-control search-bar" type="search" name="q" placeholder="Search apps..."
-                           th:value="${query}" autocomplete="off"/>
+                           th:value="${query}" autocomplete="off" id="searchInput"/>
+                    <!-- Auto-suggest dropdown -->
+                    <div id="searchSuggest" class="search-suggest-dropdown"></div>
                 </div>
             </form>
 
@@ -45,6 +47,25 @@
                     <button id="darkModeToggle" class="btn btn-link nav-link" type="button" aria-label="Toggle dark mode">
                         <i class="fa-solid fa-moon"></i>
                     </button>
+                </li>
+
+                <!-- Notifications bell (authenticated only) -->
+                <li class="nav-item dropdown" sec:authorize="isAuthenticated()" id="notificationBell">
+                    <a class="nav-link position-relative" href="#" data-bs-toggle="dropdown" aria-expanded="false" id="notifDropdownToggle">
+                        <i class="fa-solid fa-bell"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" id="notifBadge" style="font-size: 0.6rem;">
+                            0
+                        </span>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-end p-0" style="width: 320px; max-height: 400px; overflow-y: auto;" id="notifDropdown">
+                        <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                            <strong>Notifications</strong>
+                            <button class="btn btn-link btn-sm text-decoration-none p-0" id="markAllReadBtn" type="button">Mark all read</button>
+                        </div>
+                        <div id="notifList" class="list-group list-group-flush">
+                            <div class="text-center text-muted py-3" id="notifEmpty">No notifications</div>
+                        </div>
+                    </div>
                 </li>
 
                 <!-- Authenticated user menu -->

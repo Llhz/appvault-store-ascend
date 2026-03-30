@@ -1,6 +1,7 @@
 package com.appvault.service;
 
 import com.appvault.dto.AppListingDto;
+import com.appvault.dto.AppSuggestDto;
 import com.appvault.exception.ResourceNotFoundException;
 import com.appvault.model.AppListing;
 import com.appvault.model.Category;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -51,6 +53,20 @@ public class AppListingServiceImpl implements AppListingService {
     @Transactional(readOnly = true)
     public Page<AppListing> searchByQuery(String query, Pageable pageable) {
         return appListingRepository.searchByQuery(query, pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AppSuggestDto> searchSuggestions(String query, int limit) {
+        Page<AppListing> results = appListingRepository.searchByQuery(query, PageRequest.of(0, limit));
+        return results.getContent().stream()
+                .map(app -> new AppSuggestDto(
+                        app.getId(),
+                        app.getName(),
+                        app.getIconUrl(),
+                        app.getCategory() != null ? app.getCategory().getName() : null
+                ))
+                .collect(Collectors.toList());
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.appvault.controller;
 import com.appvault.model.AppListing;
 import com.appvault.model.Review;
 import com.appvault.model.User;
+import com.appvault.dto.AppSuggestDto;
 import com.appvault.service.AppListingService;
 import com.appvault.service.ReviewService;
 import com.appvault.service.UserService;
@@ -97,6 +98,15 @@ public class AppController {
         model.addAttribute("query", q);
         model.addAttribute("categories", categoryRepository.findAll());
         return "app/search-results";
+    }
+
+    @GetMapping("/search/suggest")
+    @ResponseBody
+    public List<AppSuggestDto> suggest(@RequestParam(defaultValue = "") String q) {
+        if (q.trim().length() < 2) {
+            return java.util.Collections.emptyList();
+        }
+        return appListingService.searchSuggestions(q.trim(), 5);
     }
 
     private Sort buildSort(String sort) {

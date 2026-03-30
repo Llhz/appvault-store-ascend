@@ -22,4 +22,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     @Query("SELECT COUNT(r) FROM Review r WHERE r.appListing.id = :appId")
     Long countByAppListingId(@Param("appId") Long appId);
+
+    @Query("SELECT r.rating, COUNT(r) FROM Review r GROUP BY r.rating ORDER BY r.rating")
+    List<Object[]> countByRatingGrouped();
 }
