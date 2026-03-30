@@ -27,7 +27,7 @@ jobs:
 
       - name: Start application
         run: |
-          java -jar target/appvault-0.0.1-SNAPSHOT.jar &
+          java -Xmx512m -Xms256m -jar target/appvault-0.0.1-SNAPSHOT.jar &
           echo "Waiting for application to start..."
           for i in $(seq 1 60); do
             if curl -s http://localhost:8080 > /dev/null 2>&1; then
@@ -61,6 +61,11 @@ jobs:
           K6_NO_COLOR: 1
         run: k6 run perf-k6/auth-flow-test.js --out json=test-logs/k6-auth-results.json 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | tee test-logs/k6-auth-output.txt
 
+      - name: Run admin analytics test
+        env:
+          K6_NO_COLOR: 1
+        run: k6 run perf-k6/admin-analytics-test.js --out json=test-logs/k6-admin-results.json 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | tee test-logs/k6-admin-output.txt
+
       - name: Run stress test (CI-safe)
         env:
           K6_NO_COLOR: 1
@@ -74,7 +79,7 @@ jobs:
         run: |
           echo '## ⚡ k6 Performance Test Results' >> $GITHUB_STEP_SUMMARY
           echo '' >> $GITHUB_STEP_SUMMARY
-          for test in smoke load auth stress; do
+          for test in smoke load auth admin stress; do
             file="test-logs/k6-${test}-output.txt"
             if [ -f "$file" ]; then
               echo "### ${test} test" >> $GITHUB_STEP_SUMMARY
@@ -94,5 +99,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: k6-results
-          path: test-logs/k6-*.json
+          path: |
+            test-logs/k6-*.json
+            test-logs/k6-*-output.txt
           retention-days: 7
