@@ -19,6 +19,7 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired private CategoryRepository categoryRepository;
     @Autowired private AppListingRepository appListingRepository;
     @Autowired private ReviewRepository reviewRepository;
+    @Autowired private AppSubmissionRepository appSubmissionRepository;
     @Autowired private PasswordEncoder passwordEncoder;
 
     @Override
@@ -29,6 +30,7 @@ public class DataInitializer implements CommandLineRunner {
         // Roles
         Role adminRole = createRole("ROLE_ADMIN");
         Role userRole = createRole("ROLE_USER");
+        Role developerRole = createRole("ROLE_DEVELOPER");
 
         // Users
         User admin = createUser("Admin", "User", "admin@appvault.com", "Admin123!", true, adminRole, userRole);
@@ -36,6 +38,7 @@ public class DataInitializer implements CommandLineRunner {
         User alice = createUser("Alice", "Smith", "alice@example.com", "Alice123!", true, userRole);
         User bob = createUser("Bob", "Jones", "bob@example.com", "Bob12345!", true, userRole);
         User carol = createUser("Carol", "Williams", "carol@example.com", "Carol123!", true, userRole);
+        User developer = createUser("Dev", "User", "developer@appvault.com", "Dev123!", true, userRole, developerRole);
 
         // Categories
         Category productivity = createCategory("Productivity", "fa-briefcase", "Apps to help you get things done");
@@ -310,6 +313,21 @@ public class DataInitializer implements CommandLineRunner {
         createReview("Learning Spanish fast", "I've tried Duolingo and others - LinguaLearn is the most effective by far.", 5, demo, linguaLearn);
         createReview("Great gamification", "Makes language learning fun! The streak system keeps me motivated.", 5, alice, linguaLearn);
         createReview("Very good overall", "Excellent app but the speaking recognition can be inconsistent.", 4, bob, linguaLearn);
+
+        // Sample App Submissions
+        createSubmission("TaskMaster Pro", "Ultimate Task Manager",
+                "TaskMaster Pro is an advanced task management tool with AI-powered prioritization and team collaboration features.",
+                "DevUser Studios", null, BigDecimal.ZERO, productivity, developer, SubmissionStatus.DRAFT, null);
+
+        createSubmission("QuizWiz", "Fun Learning Quizzes",
+                "QuizWiz offers thousands of quizzes across dozens of topics. Learn while having fun with friends and compete on leaderboards.",
+                "DevUser Studios", "https://placehold.co/200x200/FF9800/white?text=QW",
+                BigDecimal.ZERO, education, developer, SubmissionStatus.PENDING_REVIEW, null);
+
+        createSubmission("BudgetBuddy", "Personal Finance Helper",
+                "BudgetBuddy helps you track expenses, set savings goals, and visualize your spending habits with beautiful charts.",
+                "DevUser Studios", "https://placehold.co/200x200/4CAF50/white?text=BB",
+                new BigDecimal("1.99"), finance, developer, SubmissionStatus.APPROVED, "Great app! Approved for listing.");
     }
 
     private Role createRole(String name) {
@@ -385,5 +403,23 @@ public class DataInitializer implements CommandLineRunner {
         review.setUser(user);
         review.setAppListing(app);
         reviewRepository.save(review);
+    }
+
+    private void createSubmission(String name, String subtitle, String description,
+                                   String developer, String iconUrl, BigDecimal price,
+                                   Category category, User submitter,
+                                   SubmissionStatus status, String reviewNotes) {
+        AppSubmission submission = new AppSubmission();
+        submission.setName(name);
+        submission.setSubtitle(subtitle);
+        submission.setDescription(description);
+        submission.setDeveloper(developer);
+        submission.setIconUrl(iconUrl);
+        submission.setPrice(price);
+        submission.setCategory(category);
+        submission.setSubmitter(submitter);
+        submission.setStatus(status);
+        submission.setReviewNotes(reviewNotes);
+        appSubmissionRepository.save(submission);
     }
 }

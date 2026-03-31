@@ -12,4 +12,5 @@ public interface UserService {
     Optional<User> findByEmail(String email);
     void updateProfile(UserProfileDto dto, User currentUser);
     List<User> findAll();
+    void addDeveloperRole(User user);
 }

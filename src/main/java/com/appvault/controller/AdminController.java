@@ -2,7 +2,9 @@ package com.appvault.controller;
 
 import com.appvault.dto.AppListingDto;
 import com.appvault.model.AppListing;
+import com.appvault.model.AppSubmission;
 import com.appvault.service.AppListingService;
+import com.appvault.service.AppSubmissionService;
 import com.appvault.service.ReviewService;
 import com.appvault.service.UserService;
 import com.appvault.repository.AppListingRepository;
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
 public class AdminController {
 
     @Autowired private AppListingService appListingService;
+    @Autowired private AppSubmissionService appSubmissionService;
     @Autowired private UserService userService;
     @Autowired private CategoryRepository categoryRepository;
     @Autowired private AppListingRepository appListingRepository;
@@ -37,6 +40,7 @@ public class AdminController {
         model.addAttribute("totalReviews", reviewRepository.count());
         model.addAttribute("featuredApps", appListingService.findFeatured().size());
         model.addAttribute("recentApps", appListingService.findRecent(5));
+        model.addAttribute("pendingSubmissionCount", appSubmissionService.getPendingSubmissions().size());
         return "admin/dashboard";
     }
 
@@ -158,5 +162,35 @@ public class AdminController {
                     return entry;
                 })
                 .collect(Collectors.toList());
+    }
+
+    // --- Submission Review Endpoints ---
+
+    @GetMapping("/submissions")
+    public String submissionQueue(Model model) {
+        List<AppSubmission> pending = appSubmissionService.getPendingSubmissions();
+        model.addAttribute("submissions", pending);
+        return "admin/submission-queue";
+    }
+
+    @GetMapping("/submissions/{id}")
+    public String submissionDetail(@PathVariable Long id, Model model) {
+        AppSubmission submission = appSubmissionService.getSubmissionById(id);
+        model.addAttribute("submission", submission);
+        return "admin/submission-detail";
+    }
+
+    @PostMapping("/submissions/{id}/approve")
+    public String approveSubmission(@PathVariable Long id,
+                                     @RequestParam(required = false) String reviewNotes) {
+        appSubmissionService.approveSubmission(id, reviewNotes);
+        return "redirect:/admin/submissions";
+    }
+
+    @PostMapping("/submissions/{id}/reject")
+    public String rejectSubmission(@PathVariable Long id,
+                                    @RequestParam(required = false) String reviewNotes) {
+        appSubmissionService.rejectSubmission(id, reviewNotes);
+        return "redirect:/admin/submissions";
     }
 }

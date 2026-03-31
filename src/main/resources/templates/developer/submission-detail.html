@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments/header :: head('Submission Detail')"></head>
+<body>
+<div th:replace="fragments/navbar :: navbar"></div>
+
+<main style="padding-top: 70px;">
+<div class="container py-4" style="max-width: 700px;">
+    <a th:href="@{/developer/dashboard}" class="text-decoration-none mb-3 d-inline-block">
+        <i class="fa-solid fa-arrow-left me-1"></i>Back to Dashboard
+    </a>
+
+    <div class="bg-white rounded-3 shadow-sm p-4">
+        <!-- Header -->
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <img th:src="${submission.iconUrl != null ? submission.iconUrl : 'https://placehold.co/80x80/007AFF/white?text=' + (submission.name != null and submission.name.length() > 0 ? submission.name.substring(0,1) : '?')}"
+                 th:alt="${submission.name}" width="80" height="80" class="rounded-3"/>
+            <div>
+                <h2 class="fw-bold mb-1" th:text="${submission.name}">App Name</h2>
+                <p class="text-secondary mb-1" th:text="${submission.subtitle}" th:if="${submission.subtitle}">Subtitle</p>
+                <!-- Status Badge -->
+                <span th:if="${submission.status.name() == 'DRAFT'}" class="badge bg-secondary">Draft</span>
+                <span th:if="${submission.status.name() == 'PENDING_REVIEW'}" class="badge bg-warning text-dark">Pending Review</span>
+                <span th:if="${submission.status.name() == 'APPROVED'}" class="badge bg-success">Approved</span>
+                <span th:if="${submission.status.name() == 'REJECTED'}" class="badge bg-danger">Rejected</span>
+            </div>
+        </div>
+
+        <!-- Submission Info -->
+        <div class="row mb-3">
+            <div class="col-sm-6">
+                <div class="text-secondary small">Developer</div>
+                <div class="fw-semibold" th:text="${submission.developer != null ? submission.developer : '-'}">Developer</div>
+            </div>
+            <div class="col-sm-6">
+                <div class="text-secondary small">Category</div>
+                <div class="fw-semibold" th:text="${submission.category != null ? submission.category.name : '-'}">Category</div>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-sm-6">
+                <div class="text-secondary small">Price</div>
+                <div class="fw-semibold" th:text="${submission.price.compareTo(T(java.math.BigDecimal).ZERO) == 0 ? 'Free' : '$' + #numbers.formatDecimal(submission.price, 1, 2)}">Free</div>
+            </div>
+            <div class="col-sm-6">
+                <div class="text-secondary small">Submitted</div>
+                <div class="fw-semibold" th:text="${#temporals.format(submission.createdAt, 'MMM dd, yyyy HH:mm')}">Date</div>
+            </div>
+        </div>
+
+        <hr/>
+
+        <h5 class="fw-semibold mb-2">Description</h5>
+        <p class="text-secondary" style="white-space: pre-line;" th:text="${submission.description}">Description</p>
+
+        <!-- Review Notes (for rejected/approved) -->
+        <div th:if="${submission.reviewNotes != null}" class="mt-4">
+            <hr/>
+            <h5 class="fw-semibold mb-2">
+                <i class="fa-solid fa-comment-dots me-1"></i>Admin Review Notes
+            </h5>
+            <div class="alert rounded-3"
+                 th:classappend="${submission.status.name() == 'REJECTED' ? 'alert-danger' : 'alert-success'}"
+                 th:text="${submission.reviewNotes}">
+                Notes
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="mt-4">
+            <div th:if="${submission.status.name() == 'DRAFT'}">
+                <form th:action="@{/developer/submit/{id}/review(id=${submission.id})}" method="post" class="d-inline">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">
+                        <i class="fa-solid fa-paper-plane me-1"></i>Submit for Review
+                    </button>
+                </form>
+            </div>
+            <div th:if="${submission.status.name() == 'REJECTED'}">
+                <form th:action="@{/developer/submit/{id}/review(id=${submission.id})}" method="post" class="d-inline">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <button type="submit" class="btn btn-warning rounded-pill px-4">
+                        <i class="fa-solid fa-rotate me-1"></i>Resubmit for Review
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</main>
+
+<div th:replace="fragments/footer :: footer"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>
