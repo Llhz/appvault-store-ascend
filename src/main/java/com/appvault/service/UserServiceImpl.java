@@ -64,4 +64,12 @@ public class UserServiceImpl implements UserService {
     public List<User> findAll() {
         return userRepository.findAll();
     }
+
+    @Override
+    public void addDeveloperRole(User user) {
+        roleRepository.findByName("ROLE_DEVELOPER").ifPresent(role -> {
+            user.getRoles().add(role);
+            userRepository.save(user);
+        });
+    }
 }

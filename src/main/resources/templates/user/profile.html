@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="fragments/header :: head('My Profile')"></head>
 <body>
 <div th:replace="fragments/navbar :: navbar"></div>
@@ -19,6 +20,12 @@
             <p class="text-secondary" th:text="${user.email}">user@example.com</p>
             <a th:href="@{/user/my-reviews}" class="btn btn-outline-primary btn-sm rounded-pill">
                 <i class="fa-solid fa-star me-1"></i>My Reviews
+            </a>
+            <a sec:authorize="hasRole('DEVELOPER')" th:href="@{/developer/dashboard}" class="btn btn-outline-success btn-sm rounded-pill ms-2">
+                <i class="fa-solid fa-code me-1"></i>Developer Portal
+            </a>
+            <a sec:authorize="!hasRole('DEVELOPER')" th:href="@{/developer/register}" class="btn btn-outline-warning btn-sm rounded-pill ms-2">
+                <i class="fa-solid fa-code me-1"></i>Become a Developer
             </a>
         </div>
 

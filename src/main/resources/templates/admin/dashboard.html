@@ -70,7 +70,7 @@
 
     <!-- Quick Links -->
     <div class="row g-3 mb-4">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <a th:href="@{/admin/apps}" class="text-decoration-none">
                 <div class="bg-white rounded-3 shadow-sm p-4 d-flex align-items-center gap-3 hover-lift">
                     <div class="stat-icon bg-primary-light"><i class="fa-solid fa-rocket text-primary fa-xl"></i></div>
@@ -82,13 +82,27 @@
                 </div>
             </a>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-4">
             <a th:href="@{/admin/users}" class="text-decoration-none">
                 <div class="bg-white rounded-3 shadow-sm p-4 d-flex align-items-center gap-3 hover-lift">
                     <div class="stat-icon bg-success-light"><i class="fa-solid fa-users text-success fa-xl"></i></div>
                     <div>
                         <div class="fw-semibold text-dark">Manage Users</div>
                         <div class="text-secondary small">View and manage user accounts</div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right ms-auto text-secondary"></i>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a th:href="@{/admin/submissions}" class="text-decoration-none">
+                <div class="bg-white rounded-3 shadow-sm p-4 d-flex align-items-center gap-3 hover-lift">
+                    <div class="stat-icon bg-warning-light"><i class="fa-solid fa-inbox text-warning fa-xl"></i></div>
+                    <div>
+                        <div class="fw-semibold text-dark">Submission Queue
+                            <span th:if="${pendingSubmissionCount > 0}" class="badge bg-danger ms-1" th:text="${pendingSubmissionCount}">0</span>
+                        </div>
+                        <div class="text-secondary small">Review developer submissions</div>
                     </div>
                     <i class="fa-solid fa-chevron-right ms-auto text-secondary"></i>
                 </div>
