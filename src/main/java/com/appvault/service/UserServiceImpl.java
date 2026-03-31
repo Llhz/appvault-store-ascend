@@ -2,6 +2,7 @@ package com.appvault.service;
 
 import com.appvault.dto.UserProfileDto;
 import com.appvault.dto.UserRegistrationDto;
+import com.appvault.exception.ResourceNotFoundException;
 import com.appvault.model.Role;
 import com.appvault.model.User;
 import com.appvault.repository.RoleRepository;
@@ -63,5 +64,16 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public List<User> findAll() {
         return userRepository.findAll();
+    }
+
+    @Override
+    public User addDeveloperRole(User user) {
+        Role developerRole = roleRepository.findByName("ROLE_DEVELOPER")
+                .orElseThrow(() -> new ResourceNotFoundException("Developer role not found"));
+        if (!user.getRoles().contains(developerRole)) {
+            user.getRoles().add(developerRole);
+            return userRepository.save(user);
+        }
+        return user;
     }
 }

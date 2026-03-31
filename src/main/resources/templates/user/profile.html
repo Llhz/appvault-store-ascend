@@ -20,6 +20,17 @@
             <a th:href="@{/user/my-reviews}" class="btn btn-outline-primary btn-sm rounded-pill">
                 <i class="fa-solid fa-star me-1"></i>My Reviews
             </a>
+            <div class="mt-3" th:if="${!isDeveloper}">
+                <div class="alert alert-info d-flex align-items-center justify-content-between rounded-3 mb-0">
+                    <div>
+                        <i class="fa-solid fa-code me-2"></i>Want to publish your own apps?
+                    </div>
+                    <form th:action="@{/user/become-developer}" method="post" class="mb-0">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <button type="submit" class="btn btn-primary btn-sm rounded-pill">Become a Developer</button>
+                    </form>
+                </div>
+            </div>
         </div>
 
         <hr/>
