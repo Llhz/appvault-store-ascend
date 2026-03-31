@@ -36,7 +36,7 @@
                 <tr th:each="sub : ${submissions}">
                     <td>
                         <div class="d-flex align-items-center gap-2">
-                            <img th:src="${sub.iconUrl != null ? sub.iconUrl : 'https://placehold.co/40x40/ffc107/333?text=' + sub.name.substring(0,1)}"
+                            <img th:src="${sub.iconUrl != null ? sub.iconUrl : 'https://placehold.co/40x40/ffc107/333?text=' + (sub.name != null and sub.name.length() > 0 ? sub.name.substring(0,1) : '?')}"
                                  th:alt="${sub.name}" width="40" height="40" class="rounded-3"/>
                             <span class="fw-semibold" th:text="${sub.name}">App</span>
                         </div>

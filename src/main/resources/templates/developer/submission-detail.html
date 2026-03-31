@@ -13,7 +13,7 @@
     <div class="bg-white rounded-3 shadow-sm p-4">
         <!-- Header -->
         <div class="d-flex align-items-center gap-3 mb-4">
-            <img th:src="${submission.iconUrl != null ? submission.iconUrl : 'https://placehold.co/80x80/007AFF/white?text=' + submission.name.substring(0,1)}"
+            <img th:src="${submission.iconUrl != null ? submission.iconUrl : 'https://placehold.co/80x80/007AFF/white?text=' + (submission.name != null and submission.name.length() > 0 ? submission.name.substring(0,1) : '?')}"
                  th:alt="${submission.name}" width="80" height="80" class="rounded-3"/>
             <div>
                 <h2 class="fw-bold mb-1" th:text="${submission.name}">App Name</h2>
