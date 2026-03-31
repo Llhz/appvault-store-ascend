@@ -15,6 +15,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -44,16 +45,16 @@ public class DeveloperController {
                 .collect(Collectors.groupingBy(AppSubmission::getStatus));
 
         model.addAttribute("submissions", submissions);
-        model.addAttribute("draftSubmissions", groupedSubmissions.getOrDefault(SubmissionStatus.DRAFT, List.of()));
-        model.addAttribute("pendingSubmissions", groupedSubmissions.getOrDefault(SubmissionStatus.PENDING_REVIEW, List.of()));
-        model.addAttribute("approvedSubmissions", groupedSubmissions.getOrDefault(SubmissionStatus.APPROVED, List.of()));
-        model.addAttribute("rejectedSubmissions", groupedSubmissions.getOrDefault(SubmissionStatus.REJECTED, List.of()));
+        model.addAttribute("draftSubmissions", groupedSubmissions.getOrDefault(SubmissionStatus.DRAFT, Collections.emptyList()));
+        model.addAttribute("pendingSubmissions", groupedSubmissions.getOrDefault(SubmissionStatus.PENDING_REVIEW, Collections.emptyList()));
+        model.addAttribute("approvedSubmissions", groupedSubmissions.getOrDefault(SubmissionStatus.APPROVED, Collections.emptyList()));
+        model.addAttribute("rejectedSubmissions", groupedSubmissions.getOrDefault(SubmissionStatus.REJECTED, Collections.emptyList()));
 
         // Stats
         model.addAttribute("totalSubmissions", submissions.size());
-        model.addAttribute("pendingCount", groupedSubmissions.getOrDefault(SubmissionStatus.PENDING_REVIEW, List.of()).size());
-        model.addAttribute("approvedCount", groupedSubmissions.getOrDefault(SubmissionStatus.APPROVED, List.of()).size());
-        model.addAttribute("rejectedCount", groupedSubmissions.getOrDefault(SubmissionStatus.REJECTED, List.of()).size());
+        model.addAttribute("pendingCount", groupedSubmissions.getOrDefault(SubmissionStatus.PENDING_REVIEW, Collections.emptyList()).size());
+        model.addAttribute("approvedCount", groupedSubmissions.getOrDefault(SubmissionStatus.APPROVED, Collections.emptyList()).size());
+        model.addAttribute("rejectedCount", groupedSubmissions.getOrDefault(SubmissionStatus.REJECTED, Collections.emptyList()).size());
 
         return "developer/dashboard";
     }
