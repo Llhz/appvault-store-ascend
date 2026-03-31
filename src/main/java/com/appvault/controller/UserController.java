@@ -30,6 +30,7 @@ public class UserController {
         dto.setAvatarUrl(user.getAvatarUrl());
         model.addAttribute("user", user);
         model.addAttribute("profileDto", dto);
+        model.addAttribute("isDeveloper", isDeveloper(user));
         return "user/profile";
     }
 
@@ -40,6 +41,7 @@ public class UserController {
         User user = getUser(auth);
         if (result.hasErrors()) {
             model.addAttribute("user", user);
+            model.addAttribute("isDeveloper", isDeveloper(user));
             return "user/profile";
         }
         userService.updateProfile(dto, user);
@@ -54,8 +56,19 @@ public class UserController {
         return "user/my-reviews";
     }
 
+    @PostMapping("/become-developer")
+    public String becomeDeveloper(Authentication auth) {
+        User user = getUser(auth);
+        userService.addDeveloperRole(user);
+        return "redirect:/developer/dashboard";
+    }
+
     private User getUser(Authentication auth) {
         return userService.findByEmail(auth.getName())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    }
+
+    private boolean isDeveloper(User user) {
+        return user.getRoles().stream().anyMatch(r -> "ROLE_DEVELOPER".equals(r.getName()));
     }
 }

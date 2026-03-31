@@ -2,10 +2,14 @@ package com.appvault.controller;
 
 import com.appvault.dto.AppListingDto;
 import com.appvault.model.AppListing;
+import com.appvault.model.AppSubmission;
+import com.appvault.model.SubmissionStatus;
 import com.appvault.service.AppListingService;
+import com.appvault.service.AppSubmissionService;
 import com.appvault.service.ReviewService;
 import com.appvault.service.UserService;
 import com.appvault.repository.AppListingRepository;
+import com.appvault.repository.AppSubmissionRepository;
 import com.appvault.repository.CategoryRepository;
 import com.appvault.repository.ReviewRepository;
 import com.appvault.repository.UserRepository;
@@ -27,6 +31,8 @@ public class AdminController {
     @Autowired private UserService userService;
     @Autowired private CategoryRepository categoryRepository;
     @Autowired private AppListingRepository appListingRepository;
+    @Autowired private AppSubmissionRepository appSubmissionRepository;
+    @Autowired private AppSubmissionService appSubmissionService;
     @Autowired private UserRepository userRepository;
     @Autowired private ReviewRepository reviewRepository;
 
@@ -36,6 +42,7 @@ public class AdminController {
         model.addAttribute("totalUsers", userRepository.count());
         model.addAttribute("totalReviews", reviewRepository.count());
         model.addAttribute("featuredApps", appListingService.findFeatured().size());
+        model.addAttribute("pendingSubmissions", appSubmissionRepository.countByStatus(SubmissionStatus.PENDING_REVIEW));
         model.addAttribute("recentApps", appListingService.findRecent(5));
         return "admin/dashboard";
     }
@@ -110,6 +117,33 @@ public class AdminController {
     public String listUsers(Model model) {
         model.addAttribute("users", userService.findAll());
         return "admin/manage-users";
+    }
+
+    @GetMapping("/submissions")
+    public String submissionQueue(Model model) {
+        model.addAttribute("submissions", appSubmissionService.getPendingSubmissions());
+        return "admin/submission-queue";
+    }
+
+    @GetMapping("/submissions/{id}")
+    public String submissionDetail(@PathVariable Long id, Model model) {
+        AppSubmission submission = appSubmissionService.getSubmissionById(id);
+        model.addAttribute("submission", submission);
+        return "admin/submission-detail";
+    }
+
+    @PostMapping("/submissions/{id}/approve")
+    public String approveSubmission(@PathVariable Long id,
+                                     @RequestParam(value = "reviewNotes", required = false) String reviewNotes) {
+        appSubmissionService.approveSubmission(id, reviewNotes);
+        return "redirect:/admin/submissions/" + id + "?approved";
+    }
+
+    @PostMapping("/submissions/{id}/reject")
+    public String rejectSubmission(@PathVariable Long id,
+                                    @RequestParam(value = "reviewNotes", required = false) String reviewNotes) {
+        appSubmissionService.rejectSubmission(id, reviewNotes);
+        return "redirect:/admin/submissions/" + id + "?rejected";
     }
 
     // --- JSON API endpoints for dashboard charts ---

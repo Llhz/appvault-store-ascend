@@ -19,6 +19,7 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired private CategoryRepository categoryRepository;
     @Autowired private AppListingRepository appListingRepository;
     @Autowired private ReviewRepository reviewRepository;
+    @Autowired private AppSubmissionRepository appSubmissionRepository;
     @Autowired private PasswordEncoder passwordEncoder;
 
     @Override
@@ -29,6 +30,7 @@ public class DataInitializer implements CommandLineRunner {
         // Roles
         Role adminRole = createRole("ROLE_ADMIN");
         Role userRole = createRole("ROLE_USER");
+        Role developerRole = createRole("ROLE_DEVELOPER");
 
         // Users
         User admin = createUser("Admin", "User", "admin@appvault.com", "Admin123!", true, adminRole, userRole);
@@ -36,6 +38,7 @@ public class DataInitializer implements CommandLineRunner {
         User alice = createUser("Alice", "Smith", "alice@example.com", "Alice123!", true, userRole);
         User bob = createUser("Bob", "Jones", "bob@example.com", "Bob12345!", true, userRole);
         User carol = createUser("Carol", "Williams", "carol@example.com", "Carol123!", true, userRole);
+        User devUser = createUser("Dana", "Developer", "developer@appvault.com", "Dev123!", true, userRole, developerRole);
 
         // Categories
         Category productivity = createCategory("Productivity", "fa-briefcase", "Apps to help you get things done");
@@ -270,6 +273,35 @@ public class DataInitializer implements CommandLineRunner {
                          "https://placehold.co/390x844/F2F3F4/333?text=Create+QR",
                          "https://placehold.co/390x844/F2F3F4/333?text=History"});
 
+        // Developer submissions
+        createSubmission("FocusBoard", "Team task manager for agile squads",
+                "FocusBoard helps distributed teams collaborate with kanban boards, milestones, and real-time notifications.",
+                "DevFlow Labs", "https://placehold.co/100x100/0d6efd/fff?text=FB",
+                BigDecimal.ZERO, productivity, devUser, SubmissionStatus.DRAFT, null, null);
+
+        createSubmission("SnapNotes", "Instant voice to notes",
+                "SnapNotes captures voice memos and instantly turns them into organized, searchable notes with tags.",
+                "VoiceFirst Studios", "https://placehold.co/100x100/6610f2/fff?text=SN",
+                new BigDecimal("1.99"), utilities, devUser, SubmissionStatus.PENDING_REVIEW, null, null);
+
+        AppListing approvedListing = createApp("CalmBreath", "Mindful breathing coach",
+                "CalmBreath guides you through personalized breathing exercises with soothing visuals and streak tracking.",
+                "Wellness Devs", "1.0.0", "12.4 MB",
+                "https://placehold.co/200x200/20c997/fff?text=CB",
+                "https://placehold.co/1200x400/20c997/fff?text=CalmBreath",
+                BigDecimal.ZERO, 0, 0, 0L, false, health,
+                "iOS 13+", "4+", null);
+
+        createSubmission("CalmBreath", "Mindful breathing coach",
+                "CalmBreath guides you through personalized breathing exercises with soothing visuals and streak tracking.",
+                "Wellness Devs", "https://placehold.co/100x100/20c997/fff?text=CB",
+                BigDecimal.ZERO, health, devUser, SubmissionStatus.APPROVED, "Approved and published", approvedListing);
+
+        createSubmission("StreamLite", "Lightweight streaming companion",
+                "StreamLite is a companion app that helps you track shows and movies with reminders and friends lists.",
+                "StreamTech", "https://placehold.co/100x100/fd7e14/fff?text=SL",
+                new BigDecimal("0.99"), entertainment, devUser, SubmissionStatus.REJECTED, "Please improve icon quality and add age rating details.", null);
+
         // Reviews
         createReview("Absolutely love it!", "This app has completely changed how I manage my tasks. The AI prioritization is spot on.", 5, alice, focusFlow);
         createReview("Best productivity app", "Clean interface, works great. Syncs perfectly across all my devices.", 5, bob, focusFlow);
@@ -385,5 +417,24 @@ public class DataInitializer implements CommandLineRunner {
         review.setUser(user);
         review.setAppListing(app);
         reviewRepository.save(review);
+    }
+
+    private AppSubmission createSubmission(String name, String subtitle, String description,
+                                            String developer, String iconUrl, BigDecimal price,
+                                            Category category, User submitter, SubmissionStatus status,
+                                            String reviewNotes, AppListing appListing) {
+        AppSubmission submission = new AppSubmission();
+        submission.setName(name);
+        submission.setSubtitle(subtitle);
+        submission.setDescription(description);
+        submission.setDeveloper(developer);
+        submission.setIconUrl(iconUrl);
+        submission.setPrice(price != null ? price : BigDecimal.ZERO);
+        submission.setCategory(category);
+        submission.setSubmitter(submitter);
+        submission.setStatus(status);
+        submission.setReviewNotes(reviewNotes);
+        submission.setAppListing(appListing);
+        return appSubmissionRepository.save(submission);
     }
 }
