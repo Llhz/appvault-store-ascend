@@ -19,6 +19,7 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired private CategoryRepository categoryRepository;
     @Autowired private AppListingRepository appListingRepository;
     @Autowired private ReviewRepository reviewRepository;
+    @Autowired private AppSubmissionRepository appSubmissionRepository;
     @Autowired private PasswordEncoder passwordEncoder;
 
     @Override
@@ -29,10 +30,12 @@ public class DataInitializer implements CommandLineRunner {
         // Roles
         Role adminRole = createRole("ROLE_ADMIN");
         Role userRole = createRole("ROLE_USER");
+        Role developerRole = createRole("ROLE_DEVELOPER");
 
         // Users
         User admin = createUser("Admin", "User", "admin@appvault.com", "Admin123!", true, adminRole, userRole);
         User demo = createUser("Demo", "User", "user@appvault.com", "User123!", true, userRole);
+        User developer = createUser("Developer", "User", "developer@appvault.com", "Dev123!", true, userRole, developerRole);
         User alice = createUser("Alice", "Smith", "alice@example.com", "Alice123!", true, userRole);
         User bob = createUser("Bob", "Jones", "bob@example.com", "Bob12345!", true, userRole);
         User carol = createUser("Carol", "Williams", "carol@example.com", "Carol123!", true, userRole);
@@ -310,6 +313,22 @@ public class DataInitializer implements CommandLineRunner {
         createReview("Learning Spanish fast", "I've tried Duolingo and others - LinguaLearn is the most effective by far.", 5, demo, linguaLearn);
         createReview("Great gamification", "Makes language learning fun! The streak system keeps me motivated.", 5, alice, linguaLearn);
         createReview("Very good overall", "Excellent app but the speaking recognition can be inconsistent.", 4, bob, linguaLearn);
+
+        // App Submissions
+        createSubmission("TaskMaster Pro", "Advanced Task Management",
+                "TaskMaster Pro revolutionizes how you manage tasks with AI-powered prioritization and seamless team collaboration. Perfect for professionals who need to stay on top of their workload.\n\nFeatures:\n• AI-driven task prioritization\n• Real-time team collaboration\n• Calendar integration\n• Analytics dashboard\n• Customizable workflows",
+                "DevStudio Inc", "https://placehold.co/200x200/4CAF50/white?text=TM", BigDecimal.ZERO,
+                productivity, developer, SubmissionStatus.DRAFT);
+
+        createSubmission("PhotoWiz", "AI Photo Enhancement",
+                "PhotoWiz uses cutting-edge AI to enhance your photos instantly. One-tap improvements, smart filters, and professional-grade editing tools make every photo perfect.\n\nFeatures:\n• AI-powered enhancement\n• 200+ smart filters\n• Portrait mode perfection\n• Batch processing\n• Cloud storage integration",
+                "PixelWorks", "https://placehold.co/200x200/FF9800/white?text=PW", new BigDecimal("2.99"),
+                photoVideo, developer, SubmissionStatus.PENDING_REVIEW);
+
+        createSubmission("MindfulBreath", "Meditation & Relaxation",
+                "MindfulBreath brings peace to your busy life with guided meditations, breathing exercises, and sleep sounds. Start your mindfulness journey today.\n\nFeatures:\n• 300+ guided meditations\n• Custom breathing exercises\n• Sleep stories and sounds\n• Progress tracking\n• Offline mode",
+                "ZenApps Co", "https://placehold.co/200x200/9C27B0/white?text=MB", BigDecimal.ZERO,
+                health, developer, SubmissionStatus.APPROVED);
     }
 
     private Role createRole(String name) {
@@ -385,5 +404,28 @@ public class DataInitializer implements CommandLineRunner {
         review.setUser(user);
         review.setAppListing(app);
         reviewRepository.save(review);
+    }
+
+    private void createSubmission(String name, String subtitle, String description,
+                                   String developer, String iconUrl, BigDecimal price,
+                                   Category category, User submitter, SubmissionStatus status) {
+        AppSubmission submission = new AppSubmission();
+        submission.setName(name);
+        submission.setSubtitle(subtitle);
+        submission.setDescription(description);
+        submission.setDeveloper(developer);
+        submission.setIconUrl(iconUrl);
+        submission.setPrice(price);
+        submission.setCategory(category);
+        submission.setSubmitter(submitter);
+        submission.setStatus(status);
+
+        if (status == SubmissionStatus.APPROVED) {
+            submission.setReviewNotes("Great app! Approved for the store.");
+        } else if (status == SubmissionStatus.REJECTED) {
+            submission.setReviewNotes("Please improve the app description and resubmit.");
+        }
+
+        appSubmissionRepository.save(submission);
     }
 }

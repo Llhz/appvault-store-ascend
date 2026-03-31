@@ -79,6 +79,12 @@
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><a class="dropdown-item" th:href="@{/user/profile}"><i class="fa-solid fa-user me-2"></i>Profile</a></li>
                         <li><a class="dropdown-item" th:href="@{/user/my-reviews}"><i class="fa-solid fa-star me-2"></i>My Reviews</a></li>
+                        <li sec:authorize="hasRole('DEVELOPER')"><hr class="dropdown-divider"/></li>
+                        <li sec:authorize="hasRole('DEVELOPER')">
+                            <a class="dropdown-item" th:href="@{/developer/dashboard}">
+                                <i class="fa-solid fa-code me-2"></i>Developer Portal
+                            </a>
+                        </li>
                         <li sec:authorize="hasRole('ADMIN')"><hr class="dropdown-divider"/></li>
                         <li sec:authorize="hasRole('ADMIN')">
                             <a class="dropdown-item text-danger" th:href="@{/admin/dashboard}">
